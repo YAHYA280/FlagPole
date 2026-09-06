@@ -1,0 +1,34 @@
+# Local development infrastructure only. App runs from IDE / mvnw.
+# Production compose lives in infra/.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: flagpole-postgres
+    environment:
+      POSTGRES_DB: flagpole
+      POSTGRES_USER: flagpole
+      POSTGRES_PASSWORD: flagpole
+    ports:
+      # host 5434 -> container 5432 (5432/5433 on the host are often taken by other Postgres instances)
+      - "5434:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flagpole -d flagpole"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: flagpole-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
