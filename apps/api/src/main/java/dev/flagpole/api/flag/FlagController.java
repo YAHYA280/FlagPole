@@ -6,6 +6,7 @@ import dev.flagpole.api.flag.FlagDtos.UpdateFlagRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,6 +29,7 @@ public class FlagController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public FlagResponse create(@PathVariable String projectKey, @Valid @RequestBody CreateFlagRequest request) {
         return flagService.create(projectKey, request);
     }
@@ -44,6 +46,7 @@ public class FlagController {
     }
 
     @PatchMapping("/{flagKey}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public FlagResponse update(@PathVariable String projectKey, @PathVariable String flagKey,
                                @Valid @RequestBody UpdateFlagRequest request) {
         return flagService.update(projectKey, flagKey, request);
@@ -51,6 +54,7 @@ public class FlagController {
 
     @DeleteMapping("/{flagKey}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public void archive(@PathVariable String projectKey, @PathVariable String flagKey) {
         flagService.archive(projectKey, flagKey);
     }

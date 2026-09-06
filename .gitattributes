@@ -1,0 +1,14 @@
+# Normalise line endings: LF in the repo and in working copies on every OS.
+# Shell scripts (mvnw) break with CRLF on Linux CI; Java/TS toolchains are happier with LF too.
+* text=auto eol=lf
+
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.woff binary
+*.woff2 binary

@@ -27,11 +27,12 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
-  # Temporary basic-auth admin until Keycloak JWT is wired in (M1 end).
   security:
-    user:
-      name: ${ADMIN_USER:admin}
-      password: ${ADMIN_PASSWORD:admin}
+    oauth2:
+      resourceserver:
+        jwt:
+          # Keycloak realm. Token "iss" claim must match exactly. Decoder is lazy: API boots without Keycloak up.
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/flagpole}
 
 server:
   port: ${PORT:8080}
@@ -46,6 +47,12 @@ management:
     health:
       probes:
         enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
 
 logging:
   level:

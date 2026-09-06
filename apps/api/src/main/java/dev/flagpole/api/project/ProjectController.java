@@ -6,6 +6,7 @@ import dev.flagpole.api.project.ProjectDtos.UpdateProjectRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +28,7 @@ public class ProjectController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
     public ProjectResponse create(@Valid @RequestBody CreateProjectRequest request) {
         return projectService.create(request);
     }
@@ -42,12 +44,14 @@ public class ProjectController {
     }
 
     @PatchMapping("/{projectKey}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ProjectResponse update(@PathVariable String projectKey, @Valid @RequestBody UpdateProjectRequest request) {
         return projectService.update(projectKey, request);
     }
 
     @DeleteMapping("/{projectKey}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable String projectKey) {
         projectService.delete(projectKey);
     }

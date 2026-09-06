@@ -8,6 +8,7 @@ import dev.flagpole.api.project.Project;
 import dev.flagpole.api.project.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -39,6 +40,7 @@ public class FlagConfigController {
 
     @PutMapping
     @Transactional
+    @PreAuthorize("hasAnyRole('ADMIN', 'EDITOR')")
     public FlagConfigResponse update(@PathVariable String projectKey,
                                      @PathVariable String environmentKey,
                                      @PathVariable String flagKey,

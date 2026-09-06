@@ -1,0 +1,67 @@
+{
+  "realm": "flagpole",
+  "displayName": "Flagpole",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "accessTokenLifespan": 900,
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "Manage projects, environments and SDK keys" },
+      { "name": "editor", "description": "Create and change flags and their per-environment configuration" },
+      { "name": "viewer", "description": "Read-only access" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "flagpole-web",
+      "name": "Flagpole dashboard",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*", "http://localhost:8080/swagger-ui/*"],
+      "webOrigins": ["http://localhost:3000", "http://localhost:8080"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "defaultClientScopes": ["profile", "email", "roles", "web-origins"]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@flagpole.local",
+      "firstName": "Ada",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "admin", "temporary": false }],
+      "realmRoles": ["admin", "editor", "viewer"]
+    },
+    {
+      "username": "editor",
+      "email": "editor@flagpole.local",
+      "firstName": "Eve",
+      "lastName": "Editor",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "editor", "temporary": false }],
+      "realmRoles": ["editor", "viewer"]
+    },
+    {
+      "username": "viewer",
+      "email": "viewer@flagpole.local",
+      "firstName": "Vic",
+      "lastName": "Viewer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "viewer", "temporary": false }],
+      "realmRoles": ["viewer"]
+    }
+  ]
+}

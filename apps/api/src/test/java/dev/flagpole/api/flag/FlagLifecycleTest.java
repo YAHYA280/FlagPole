@@ -1,6 +1,7 @@
 package dev.flagpole.api.flag;
 
 import dev.flagpole.api.TestcontainersConfiguration;
+import dev.flagpole.api.security.TestAuth;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,19 +9,17 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * End-to-end flow through the real HTTP layer against a real Postgres (Testcontainers):
- * project -> environment -> flag -> per-environment config -> archive.
+ * project -> environment -> flag -> per-environment config -> archive. All calls as admin.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
-@WithMockUser
 class FlagLifecycleTest {
 
     @Autowired
@@ -87,19 +86,19 @@ class FlagLifecycleTest {
                 """))
                 .hasStatus(HttpStatus.CREATED);
 
-        assertThat(mvc.get().uri("/api/v1/projects/shop/flags/new-checkout"))
+        assertThat(get("/api/v1/projects/shop/flags/new-checkout"))
                 .hasStatusOk()
                 .bodyJson().extractingPath("$.environments").asArray().hasSize(2);
 
         // archive hides the flag from the default listing but keeps it retrievable
-        assertThat(mvc.delete().uri("/api/v1/projects/shop/flags/new-checkout"))
+        assertThat(mvc.delete().uri("/api/v1/projects/shop/flags/new-checkout").with(TestAuth.admin()))
                 .hasStatus(HttpStatus.NO_CONTENT);
 
-        assertThat(mvc.get().uri("/api/v1/projects/shop/flags"))
+        assertThat(get("/api/v1/projects/shop/flags"))
                 .hasStatusOk()
                 .bodyJson().extractingPath("$").asArray().isEmpty();
 
-        assertThat(mvc.get().uri("/api/v1/projects/shop/flags").param("includeArchived", "true"))
+        assertThat(mvc.get().uri("/api/v1/projects/shop/flags").param("includeArchived", "true").with(TestAuth.admin()))
                 .hasStatusOk()
                 .bodyJson().extractingPath("$[0].archived").isEqualTo(true);
     }
@@ -128,11 +127,15 @@ class FlagLifecycleTest {
                 .bodyJson().extractingPath("$.detail").asString().contains("does not match flag type STRING");
     }
 
+    private MockMvcTester.MockMvcRequestBuilder get(String uri) {
+        return mvc.get().uri(uri).with(TestAuth.admin());
+    }
+
     private MockMvcTester.MockMvcRequestBuilder post(String uri, String body) {
-        return mvc.post().uri(uri).contentType(MediaType.APPLICATION_JSON).content(body);
+        return mvc.post().uri(uri).with(TestAuth.admin()).contentType(MediaType.APPLICATION_JSON).content(body);
     }
 
     private MockMvcTester.MockMvcRequestBuilder put(String uri, String body) {
-        return mvc.put().uri(uri).contentType(MediaType.APPLICATION_JSON).content(body);
+        return mvc.put().uri(uri).with(TestAuth.admin()).contentType(MediaType.APPLICATION_JSON).content(body);
     }
 }
