@@ -55,7 +55,7 @@ public class SdkService {
     /** All non-archived flags of the environment as detached snapshots. M3 caches this per environment. */
     private List<FlagSnapshot> loadSnapshots(SdkPrincipal sdk) {
         Environment environment = environmentRepository.getReferenceById(sdk.environmentId());
-        return configRepository.findAllByEnvironment(environment).stream()
+        return configRepository.findAllByEnvironmentOrderByFlagKeyAsc(environment).stream()
                 .filter(config -> !config.getFlag().isArchived())
                 .map(FlagSnapshot::from)
                 .toList();

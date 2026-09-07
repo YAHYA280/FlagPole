@@ -16,6 +16,7 @@ public interface FlagEnvironmentConfigRepository extends JpaRepository<FlagEnvir
 
     Optional<FlagEnvironmentConfig> findByFlagAndEnvironment(FeatureFlag flag, Environment environment);
 
+    /** Sorted by flag key so SDK payloads are stable across calls (diffable, cacheable). */
     @EntityGraph(attributePaths = "flag")
-    List<FlagEnvironmentConfig> findAllByEnvironment(Environment environment);
+    List<FlagEnvironmentConfig> findAllByEnvironmentOrderByFlagKeyAsc(Environment environment);
 }

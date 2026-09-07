@@ -116,8 +116,9 @@ class SdkApiTest {
                 .hasStatusOk()
                 .bodyJson()
                 .satisfies(json -> {
-                    assertThat(json).extractingPath("$.flags").asArray().hasSize(2);
-                    assertThat(json).extractingPath("$.flags[0].rules[0].conditions[0].operator").isEqualTo("ENDS_WITH");
+                    assertThat(json).extractingPath("$.flags[*].key").asArray().containsExactly("banner-text", "new-checkout");
+                    assertThat(json).extractingPath("$.flags[1].rules[0].conditions[0].operator").isEqualTo("ENDS_WITH");
+                    assertThat(json).extractingPath("$.flags[0].rules").asArray().isEmpty();
                 });
     }
 
