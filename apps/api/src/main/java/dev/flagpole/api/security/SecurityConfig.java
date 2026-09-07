@@ -1,18 +1,26 @@
 package dev.flagpole.api.security;
 
+import dev.flagpole.api.environment.EnvironmentRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 /**
- * Stateless resource server. Every request carries a Keycloak-issued JWT (Authorization: Bearer ...).
- * Signature and issuer are verified against {@code spring.security.oauth2.resourceserver.jwt.issuer-uri}.
- * Authorisation is per endpoint via {@code @PreAuthorize} on controllers (see {@link Roles}).
+ * Two stateless filter chains:
+ * <ol>
+ *   <li>{@code /api/v1/sdk/**}: SDK key authentication (environment identity). Used by SDKs.</li>
+ *   <li>everything else: Keycloak JWT resource server (user identity + realm roles). Used by the dashboard.</li>
+ * </ol>
+ * Authorisation on management endpoints is per method via {@code @PreAuthorize} (see {@link Roles}).
  */
 @Configuration
 @EnableWebSecurity
@@ -20,7 +28,22 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter)
+    @Order(1)
+    SecurityFilterChain sdkFilterChain(HttpSecurity http, EnvironmentRepository environmentRepository)
+            throws Exception {
+        return http
+                .securityMatcher("/api/v1/sdk/**")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(new SdkKeyAuthenticationFilter(environmentRepository), AuthorizationFilter.class)
+                .authorizeHttpRequests(auth -> auth.anyRequest().hasRole(SdkAuthenticationToken.ROLE))
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .build();
+    }
+
+    @Bean
+    @Order(2)
+    SecurityFilterChain apiFilterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter)
             throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())

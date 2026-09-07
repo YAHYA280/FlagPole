@@ -3,6 +3,7 @@ package dev.flagpole.api.flag;
 import dev.flagpole.api.common.NotFoundException;
 import dev.flagpole.api.environment.Environment;
 import dev.flagpole.api.environment.EnvironmentRepository;
+import dev.flagpole.api.evaluation.RuleValidator;
 import dev.flagpole.api.flag.FlagDtos.FlagConfigResponse;
 import dev.flagpole.api.flag.FlagDtos.UpdateFlagConfigRequest;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class FlagConfigService {
     private final FlagEnvironmentConfigRepository configRepository;
     private final FeatureFlagRepository flagRepository;
     private final EnvironmentRepository environmentRepository;
+    private final RuleValidator ruleValidator;
 
     /** New flag: create a disabled config in every environment of its project. */
     public void initForFlag(FeatureFlag flag) {
@@ -59,6 +61,7 @@ public class FlagConfigService {
         config.setEnabled(request.enabled());
         config.setOnVariation(request.onVariation());
         config.setOffVariation(request.offVariation());
+        config.setRules(ruleValidator.validate(flag, request.rules()));
         // flush now so @Version and @UpdateTimestamp are bumped before we build the response
         return FlagConfigResponse.from(configRepository.saveAndFlush(config));
     }

@@ -1,6 +1,7 @@
 package dev.flagpole.api.flag;
 
 import dev.flagpole.api.environment.Environment;
+import dev.flagpole.api.evaluation.TargetingRule;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -21,7 +22,6 @@ import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * State of one flag inside one environment. This is what SDKs actually consume.
@@ -57,10 +57,10 @@ public class FlagEnvironmentConfig {
     @Column(name = "off_variation", nullable = false, length = 64)
     private String offVariation;
 
-    /** Targeting rules, evaluated in order. Typed properly in M2 (rule engine). */
+    /** Targeting rules, evaluated in order, first match wins. See docs/adr/002-evaluation-engine.md. */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
-    private List<Map<String, Object>> rules = new ArrayList<>();
+    private List<TargetingRule> rules = new ArrayList<>();
 
     @Version
     @Column(nullable = false)

@@ -2,7 +2,7 @@
 
 Self-hosted feature flag platform. Toggle features, roll out gradually, target users by attributes, and push changes to your apps in real time without redeploying.
 
-> Work in progress. Milestone 1 (core API) in development.
+> Work in progress. Core API, auth and evaluation engine done; real-time streaming and SDKs next.
 
 ## Why
 
@@ -59,6 +59,24 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/projects
 
 Keycloak admin console: http://localhost:8081 (admin / admin).
 
+### SDK endpoints
+
+SDKs do not use Keycloak. They authenticate with the environment's SDK key (shown when you create an environment, rotatable by admins):
+
+```bash
+SDK_KEY=fp_...
+
+# evaluate every flag for a user
+curl -s -X POST http://localhost:8080/api/v1/sdk/evaluate \
+  -H "Authorization: Bearer $SDK_KEY" -H "Content-Type: application/json" \
+  -d '{"context":{"key":"user-42","attributes":{"email":"ada@flagpole.dev","country":"FR"}}}'
+
+# raw flag configs (rules included) for server-side SDKs that evaluate locally
+curl -s http://localhost:8080/api/v1/sdk/flags -H "Authorization: Bearer $SDK_KEY"
+```
+
+Targeting rules live on the per-environment config (`PUT .../environments/{env}/flags/{flag}/config`). Rule semantics, operators and the percentage rollout hashing are documented in [ADR 002](docs/adr/002-evaluation-engine.md).
+
 Windows PowerShell, if another JDK is your default:
 
 ```powershell
@@ -68,8 +86,8 @@ $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot"
 
 ## Roadmap
 
-- [ ] M1 Projects, environments, flags CRUD + auth
-- [ ] M2 Targeting rules + evaluation API
+- [x] M1 Projects, environments, flags CRUD + Keycloak auth
+- [x] M2 Targeting rules, percentage rollouts, evaluation engine + SDK API
 - [ ] M3 SSE streaming + Redis cache
 - [ ] M4 TypeScript SDK
 - [ ] M5 Java SDK

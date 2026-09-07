@@ -1,6 +1,7 @@
 package dev.flagpole.api.flag;
 
 import dev.flagpole.api.common.Keys;
+import dev.flagpole.api.evaluation.TargetingRule;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +10,6 @@ import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public final class FlagDtos {
@@ -43,6 +43,7 @@ public final class FlagDtos {
             boolean enabled,
             String onVariation,
             String offVariation,
+            int ruleCount,
             long version) {
 
         static FlagEnvironmentStatus from(FlagEnvironmentConfig config) {
@@ -51,6 +52,7 @@ public final class FlagDtos {
                     config.isEnabled(),
                     config.getOnVariation(),
                     config.getOffVariation(),
+                    config.getRules().size(),
                     config.getVersion());
         }
     }
@@ -82,13 +84,16 @@ public final class FlagDtos {
         }
     }
 
+    /** Full replacement of the environment config (PUT semantics). {@code rules} null or empty clears rules. */
     public record UpdateFlagConfigRequest(
             @NotNull
             Boolean enabled,
             @NotBlank
             String onVariation,
             @NotBlank
-            String offVariation) {
+            String offVariation,
+            @Size(max = 100)
+            List<@Valid TargetingRule> rules) {
     }
 
     public record FlagConfigResponse(
@@ -97,7 +102,7 @@ public final class FlagDtos {
             boolean enabled,
             String onVariation,
             String offVariation,
-            List<Map<String, Object>> rules,
+            List<TargetingRule> rules,
             long version,
             Instant updatedAt) {
 
